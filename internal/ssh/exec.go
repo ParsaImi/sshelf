@@ -31,40 +31,41 @@ func Exec(h model.Host) error {
 }
 
 func buildArgs(h model.Host) ([]string, error) {
-	sshArgs := []string{
-		"ssh",
-		"-p", fmt.Sprintf("%d", h.Port),
-		fmt.Sprintf("%s@%s", h.User, h.Hostname),
-	}
+	// accept-new: auto-accept unknown host keys, still reject changed ones.
+	// Prevents the yes/no prompt that breaks sshpass-based connections.
+	strictCheck := "-o StrictHostKeyChecking=accept-new"
 
 	switch h.AuthMethod() {
 	case model.AuthKey:
-		// Insert -i keypath before user@host
 		expanded := expandTilde(h.KeyPath)
-		sshArgs = []string{
+		return []string{
 			"ssh",
 			"-p", fmt.Sprintf("%d", h.Port),
 			"-i", expanded,
+			strictCheck,
 			fmt.Sprintf("%s@%s", h.User, h.Hostname),
-		}
+		}, nil
 
 	case model.AuthPass:
 		if _, err := exec.LookPath("sshpass"); err != nil {
 			return nil, fmt.Errorf("password auth requires sshpass (apt install sshpass)")
 		}
-		// sshpass wraps the ssh command, passing the password via stdin
 		return []string{
 			"sshpass", "-p", h.Password,
 			"ssh",
 			"-p", fmt.Sprintf("%d", h.Port),
+			strictCheck,
 			fmt.Sprintf("%s@%s", h.User, h.Hostname),
 		}, nil
 
-	case model.AuthAgent:
-		// No extra flags — ssh-agent handles it
+	default: // AuthAgent
+		return []string{
+			"ssh",
+			"-p", fmt.Sprintf("%d", h.Port),
+			strictCheck,
+			fmt.Sprintf("%s@%s", h.User, h.Hostname),
+		}, nil
 	}
-
-	return sshArgs, nil
 }
 
 func expandTilde(path string) string {
