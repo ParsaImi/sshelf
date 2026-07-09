@@ -7,6 +7,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/atotto/clipboard"
 	"github.com/ParsaImi/imiterm/internal/model"
 )
 
@@ -25,6 +26,14 @@ func Exec(h model.Host) error {
 
 	if os.Getenv("TMUX") != "" {
 		exec.Command("tmux", "rename-window", h.Name).Run()
+	}
+
+	// Copy password to clipboard so sudo prompts can be answered with paste.
+	// Silently skip if clipboard is unavailable (headless / no display).
+	if h.Password != "" {
+		if err := clipboard.WriteAll(h.Password); err == nil {
+			fmt.Fprintf(os.Stderr, "\r\033[2m[sudo password copied to clipboard]\033[0m\n")
+		}
 	}
 
 	return syscall.Exec(binary, argv, os.Environ())
