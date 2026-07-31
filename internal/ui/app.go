@@ -40,6 +40,8 @@ type App struct {
 	cfg          *model.Config
 	activeScreen screen
 	prevScreen   screen
+	width        int
+	height       int
 
 	groupList screens.GroupList
 	hostList  screens.HostList
@@ -70,6 +72,24 @@ func (a App) Init() tea.Cmd { return nil }
 
 func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		a.width = msg.Width
+		a.height = msg.Height
+		switch a.activeScreen {
+		case screenGroupList:
+			a.groupList, _ = a.groupList.Update(msg)
+		case screenHostList:
+			a.hostList, _ = a.hostList.Update(msg)
+		case screenGroupForm:
+			a.groupForm, _ = a.groupForm.Update(msg)
+		case screenHostForm:
+			a.hostForm, _ = a.hostForm.Update(msg)
+		case screenConfirm:
+			a.confirm, _ = a.confirm.Update(msg)
+		case screenSearch:
+			a.search, _ = a.search.Update(msg)
+		}
+		return a, nil
 
 	// --- Git sync finished (background) ---
 	case syncResultMsg:
@@ -88,7 +108,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case screens.GroupSelectedMsg:
 		group := a.cfg.Groups[msg.Index]
 		a.activeGroupIdx = msg.Index
-		a.hostList = screens.NewHostList(group.Name, group.Hosts)
+		a.hostList = screens.NewHostList(group)
 		a.activeScreen = screenHostList
 		return a, nil
 
@@ -132,7 +152,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			g.Hosts[msg.EditIdx] = msg.Host
 		}
 		cmd := a.save()
-		a.hostList = screens.NewHostList(g.Name, g.Hosts)
+		a.hostList = screens.NewHostList(*g)
 		a.activeScreen = screenHostList
 		return a, cmd
 
@@ -150,7 +170,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				g := &a.cfg.Groups[a.activeGroupIdx]
 				g.Hosts = append(g.Hosts[:a.delIdx], g.Hosts[a.delIdx+1:]...)
 				cmd := a.save()
-				a.hostList = screens.NewHostList(g.Name, g.Hosts)
+				a.hostList = screens.NewHostList(*g)
 				a.activeScreen = screenHostList
 				return a, cmd
 			}
@@ -336,5 +356,10 @@ func (a App) View() string {
 		}
 	}
 
-	return view
+	switch a.activeScreen {
+	case screenGroupForm, screenHostForm, screenConfirm:
+		return styles.RenderViewport(view, a.width, a.height)
+	default:
+		return styles.CenterBlock(view, a.width)
+	}
 }

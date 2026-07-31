@@ -2,6 +2,7 @@ package screens
 
 import (
 	"fmt"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -57,39 +58,37 @@ func (g GroupList) Update(msg tea.Msg) (GroupList, tea.Cmd) {
 }
 
 func (g GroupList) View() string {
-	header := styles.Header.Render("  IMITERM  SSH Manager")
-
-	var rows string
-	if len(g.groups) == 0 {
-		welcome := "\n"
-		welcome += styles.GroupName.Render("  Welcome to IMITERM!") + "\n\n"
-		welcome += styles.ListItemDim.Render("  You have no server groups yet.") + "\n"
-		welcome += styles.ListItemDim.Render("  Press ") + styles.HelpKey.Render("a") + styles.ListItemDim.Render(" to create your first group,") + "\n"
-		welcome += styles.ListItemDim.Render("  then add hosts to it and connect with ") + styles.HelpKey.Render("Enter") + styles.ListItemDim.Render(".") + "\n\n"
-		welcome += styles.ListItemDim.Render("  Config: ~/.config/imiterm/config.toml") + "\n"
-		rows = welcome
+	totalHosts := 0
+	for _, group := range g.groups {
+		totalHosts += len(group.Hosts)
 	}
 
-	for i, group := range g.groups {
-		dot := lipgloss.NewStyle().Foreground(lipgloss.Color(group.Color)).Render("●")
-		name := styles.GroupName.Render(group.Name)
-		count := styles.GroupCount.Render(fmt.Sprintf("%d hosts", len(group.Hosts)))
-
-		line := fmt.Sprintf("%s  %s  %s", dot, name, count)
-
-		if group.Description != "" {
-			desc := styles.ListItemDim.Render(" — " + group.Description)
-			line += desc
-		}
-
-		if i == g.cursor {
-			rows += styles.ListItemSelected.Render("▸ "+line) + "\n"
-		} else {
-			rows += styles.ListItem.Render("  "+line) + "\n"
-		}
+	width := g.width
+	if width <= 0 {
+		width = 120
 	}
 
-	content := styles.ContentBox.Render(rows)
+	header := styles.RenderHeader(
+		"IMITERM",
+		"SSH manager",
+		styles.RenderPill("groups", fmt.Sprintf("%d", len(g.groups)), true),
+		styles.RenderPill("hosts", fmt.Sprintf("%d", totalHosts), false),
+	)
+
+	leftWidth := max(40, min(54, width/3))
+	rightWidth := max(34, width-leftWidth-6)
+
+	leftBody := g.renderGroupListBody()
+	rightBody := g.renderGroupDetailBody()
+
+	leftPanel := styles.RenderCard("Groups", leftBody, leftWidth, true)
+	rightPanel := styles.RenderCard("Selected group", rightBody, rightWidth, false)
+	content := styles.RenderDualCards(leftPanel, rightPanel, "  ")
+	if width < 100 {
+		content = leftPanel + "\n\n" + rightPanel
+	}
+
+	footer := styles.Pill.Render("↑/k down") + "  " + styles.Pill.Render("enter open") + "  " + styles.Pill.Render("a add") + "  " + styles.Pill.Render("e edit") + "  " + styles.Pill.Render("d delete") + "  " + styles.Pill.Render("/ search") + "  " + styles.Pill.Render("s sync") + "  " + styles.Pill.Render("q quit")
 
 	help := styles.RenderHelp(
 		"↑/k", "up", "↓/j", "down", "enter", "open",
@@ -97,5 +96,60 @@ func (g GroupList) View() string {
 		"/", "search", "s", "sync", "q", "quit",
 	)
 
-	return header + "\n" + content + "\n" + help + "\n"
+	return header + "\n" + content + "\n" + footer + "\n" + help + "\n"
+}
+
+func (g GroupList) renderGroupListBody() string {
+	if len(g.groups) == 0 {
+		return styles.RenderEmpty(
+			"No groups yet",
+			"Press a to create your first group, then add hosts and connect with Enter.",
+		) + "\n\n" + styles.PanelSubtle.Render("Config: ~/.config/imiterm/config.toml")
+	}
+
+	var rows []string
+	for i, group := range g.groups {
+		rows = append(rows, renderGroupRow(group, i == g.cursor))
+	}
+	return strings.Join(rows, "\n")
+}
+
+func (g GroupList) renderGroupDetailBody() string {
+	if len(g.groups) == 0 {
+		return styles.RenderEmpty("Get started", "Add a group, then put hosts inside it.")
+	}
+
+	group := g.groups[g.cursor]
+	var b strings.Builder
+	b.WriteString(styles.DetailLabel.Render("Name") + styles.DetailValue.Render(group.Name) + "\n")
+	if group.Description != "" {
+		b.WriteString(styles.DetailLabel.Render("About") + styles.DetailValue.Render(group.Description) + "\n")
+	} else {
+		b.WriteString(styles.DetailLabel.Render("About") + styles.PanelSubtle.Render("No description") + "\n")
+	}
+	b.WriteString(styles.DetailLabel.Render("Hosts") + styles.DetailValue.Render(fmt.Sprintf("%d", len(group.Hosts))) + "\n")
+	b.WriteString(styles.DetailLabel.Render("Color") + styles.GroupTag.Render(group.Color) + "\n\n")
+	b.WriteString(styles.SectionTitle.Render("Preview") + "\n")
+	if len(group.Hosts) == 0 {
+		b.WriteString(styles.PanelSubtle.Render("No hosts in this group yet."))
+	} else {
+		limit := min(4, len(group.Hosts))
+		for i := 0; i < limit; i++ {
+			host := group.Hosts[i]
+			b.WriteString(styles.SubtleRow.Render(fmt.Sprintf("%s  %s@%s:%d", host.Name, host.User, host.Hostname, host.Port)) + "\n")
+		}
+		if len(group.Hosts) > limit {
+			b.WriteString(styles.PanelSubtle.Render(fmt.Sprintf("… and %d more", len(group.Hosts)-limit)))
+		}
+	}
+	return strings.TrimRight(b.String(), "\n")
+}
+
+func renderGroupRow(group model.Group, selected bool) string {
+	dot := lipgloss.NewStyle().Foreground(lipgloss.Color(group.Color)).Render("●")
+	line := fmt.Sprintf("%s  %-16s  %s", dot, group.Name, styles.GroupCount.Render(fmt.Sprintf("%d hosts", len(group.Hosts))))
+	if selected {
+		return styles.ActiveRow.Render(styles.SelectedMarker.Render("›") + " " + line)
+	}
+	return styles.PassiveRow.Render("  " + line)
 }

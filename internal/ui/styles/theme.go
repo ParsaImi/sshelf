@@ -1,6 +1,10 @@
 package styles
 
-import "github.com/charmbracelet/lipgloss"
+import (
+	"strings"
+
+	"github.com/charmbracelet/lipgloss"
+)
 
 // Dracula-inspired palette
 var (
@@ -22,23 +26,121 @@ var Header = lipgloss.NewStyle().
 	Bold(true).
 	Foreground(colorBg).
 	Background(colorPurple).
-	Padding(0, 1).
-	MarginBottom(1)
+	Padding(0, 1)
 
-// Subtitle under the header
-var Subtitle = lipgloss.NewStyle().
+var HeaderSubtitle = lipgloss.NewStyle().
 	Foreground(colorComment).
-	Italic(true).
-	PaddingLeft(1).
-	MarginBottom(1)
+	Italic(true)
 
-// Content box wrapping the list area
+var ScreenMeta = lipgloss.NewStyle().
+	Foreground(colorComment)
+
+// Panel / card surfaces
 var ContentBox = lipgloss.NewStyle().
 	Border(lipgloss.RoundedBorder()).
 	BorderForeground(colorComment).
 	Padding(0, 1).
-	MarginLeft(1).
-	MarginRight(1)
+	MarginLeft(0).
+	MarginRight(0)
+
+var Card = lipgloss.NewStyle().
+	Border(lipgloss.RoundedBorder()).
+	BorderForeground(colorComment).
+	Padding(1, 2)
+
+var CardAccent = Card.Copy().BorderForeground(colorPurple)
+
+var CardSoft = Card.Copy().BorderForeground(colorBgAlt)
+
+var CardWarn = Card.Copy().BorderForeground(colorOrange)
+
+var PanelTitle = lipgloss.NewStyle().
+	Foreground(colorCyan).
+	Bold(true)
+
+var SectionTitle = lipgloss.NewStyle().
+	Foreground(colorPurple).
+	Bold(true)
+
+var PanelSubtle = lipgloss.NewStyle().
+	Foreground(colorComment)
+
+var ActiveRow = lipgloss.NewStyle().
+	Foreground(colorFg).
+	Bold(true).
+	Padding(0, 1)
+
+var SelectedMarker = lipgloss.NewStyle().
+	Foreground(colorGreen).
+	Bold(true)
+
+var PassiveRow = lipgloss.NewStyle().
+	Foreground(colorFg).
+	Padding(0, 1)
+
+var RowCard = lipgloss.NewStyle().
+	Border(lipgloss.RoundedBorder()).
+	BorderForeground(colorBgAlt).
+	Padding(0, 1).
+	MarginBottom(1)
+
+var RowCardSelected = lipgloss.NewStyle().
+	Border(lipgloss.RoundedBorder()).
+	BorderForeground(colorGreen).
+	Padding(0, 1).
+	MarginBottom(1).
+	Background(colorBgAlt)
+
+var RowTitle = lipgloss.NewStyle().
+	Foreground(colorFg).
+	Bold(true)
+
+var RowMeta = lipgloss.NewStyle().
+	Foreground(colorComment)
+
+var RowLabel = lipgloss.NewStyle().
+	Foreground(colorComment).
+	Width(10)
+
+var SubtleRow = lipgloss.NewStyle().
+	Foreground(colorComment).
+	Padding(0, 1)
+
+var DetailLabel = lipgloss.NewStyle().
+	Foreground(colorComment).
+	Width(12)
+
+var DetailValue = lipgloss.NewStyle().
+	Foreground(colorFg)
+
+var Pill = lipgloss.NewStyle().
+	Foreground(colorBg).
+	Background(colorComment).
+	Padding(0, 1).
+	Bold(true)
+
+var PillAccent = lipgloss.NewStyle().
+	Foreground(colorBg).
+	Background(colorPurple).
+	Padding(0, 1).
+	Bold(true)
+
+var PillSuccess = lipgloss.NewStyle().
+	Foreground(colorBg).
+	Background(colorGreen).
+	Padding(0, 1).
+	Bold(true)
+
+var PillWarn = lipgloss.NewStyle().
+	Foreground(colorBg).
+	Background(colorOrange).
+	Padding(0, 1).
+	Bold(true)
+
+var EmptyState = lipgloss.NewStyle().
+	Foreground(colorComment).
+	Italic(true).
+	PaddingLeft(2)
 
 // List items
 var ListItem = lipgloss.NewStyle().
@@ -182,6 +284,66 @@ func RenderHelp(pairs ...string) string {
 		result += part
 	}
 	return HelpBar.Render(result)
+}
+
+func RenderHeader(title, subtitle string, meta ...string) string {
+	line := Header.Render(title)
+	if subtitle != "" {
+		line += "  " + HeaderSubtitle.Render(subtitle)
+	}
+	if len(meta) > 0 {
+		line += "  " + ScreenMeta.Render(strings.Join(meta, "  "))
+	}
+	return line
+}
+
+func RenderPill(label, value string, accent bool) string {
+	content := label + ": " + value
+	if accent {
+		return PillAccent.Render(content)
+	}
+	return Pill.Render(content)
+}
+
+func RenderEmpty(title, body string) string {
+	return EmptyState.Render(title + "\n" + body)
+}
+
+func CenterBlock(view string, width int) string {
+	if width <= 0 {
+		return view
+	}
+	return lipgloss.PlaceHorizontal(width, lipgloss.Center, strings.TrimRight(view, "\n"))
+}
+
+func RenderViewport(view string, width, height int) string {
+	trimmed := strings.TrimRight(view, "\n")
+	if width <= 0 {
+		return trimmed
+	}
+	if height <= 0 {
+		return lipgloss.PlaceHorizontal(width, lipgloss.Center, trimmed)
+	}
+	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, trimmed)
+}
+
+func RenderCard(title, body string, width int, accent bool) string {
+	panel := Card
+	if accent {
+		panel = CardAccent
+	}
+	if width > 0 {
+		panel = panel.Width(width)
+	}
+	content := body
+	if title != "" {
+		content = SectionTitle.Render(title) + "\n" + body
+	}
+	return panel.Render(content)
+}
+
+func RenderDualCards(left, right string, gap string) string {
+	return lipgloss.JoinHorizontal(lipgloss.Top, left, gap, right)
 }
 
 func RenderAuthBadge(kind string) string {

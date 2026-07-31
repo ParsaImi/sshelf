@@ -12,6 +12,8 @@ type ConfirmResult struct {
 
 type Confirm struct {
 	message string
+	width   int
+	height  int
 }
 
 func NewConfirm(message string) Confirm {
@@ -21,6 +23,13 @@ func NewConfirm(message string) Confirm {
 func (c Confirm) Init() tea.Cmd { return nil }
 
 func (c Confirm) Update(msg tea.Msg) (Confirm, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		c.width = msg.Width
+		c.height = msg.Height
+		return c, nil
+	}
+
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch msg.String() {
 		case "y", "Y":
@@ -33,12 +42,18 @@ func (c Confirm) Update(msg tea.Msg) (Confirm, tea.Cmd) {
 }
 
 func (c Confirm) View() string {
-	header := styles.Header.Render("  IMITERM  Confirm")
+	width := c.width
+	if width <= 0 {
+		width = 92
+	}
+	header := styles.RenderHeader(
+		"IMITERM",
+		"Confirm action",
+		styles.RenderPill("danger", "delete", true),
+	)
 
 	prompt := styles.ConfirmPrompt.Render(c.message)
-	hint := styles.ListItemDim.Render("  Press y to confirm, n to cancel")
-
-	box := styles.ConfirmBox.Render(prompt + "\n\n" + hint)
-
+	hint := styles.PanelSubtle.Render("Press y to confirm or n/esc to cancel")
+	box := styles.RenderCard("Danger zone", prompt+"\n\n"+hint, min(width-8, 64), true)
 	return header + "\n" + box + "\n"
 }

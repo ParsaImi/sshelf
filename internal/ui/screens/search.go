@@ -1,6 +1,7 @@
 package screens
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
@@ -21,6 +22,8 @@ type Search struct {
 	all     []searchResult
 	matched []searchResult
 	cursor  int
+	width   int
+	height  int
 }
 
 func NewSearch(groups []model.Group) Search {
@@ -44,18 +47,25 @@ func NewSearch(groups []model.Group) Search {
 func (s Search) Init() tea.Cmd { return textinput.Blink }
 
 func (s Search) Update(msg tea.Msg) (Search, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		s.width = msg.Width
+		s.height = msg.Height
+		return s, nil
+	}
+
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch {
 		case keys.Match(msg, keys.GroupList.Quit):
 			return s, tea.Quit
 		case msg.String() == "esc" || msg.String() == "ctrl+b":
 			return s, func() tea.Msg { return BackMsg{} }
-		case keys.Match(msg, keys.GroupList.Up):
+		case msg.String() == "up":
 			if s.cursor > 0 {
 				s.cursor--
 			}
 			return s, nil
-		case keys.Match(msg, keys.GroupList.Down):
+		case msg.String() == "down":
 			if s.cursor < len(s.matched)-1 {
 				s.cursor++
 			}
@@ -101,24 +111,69 @@ func (s *Search) filter() {
 }
 
 func (s Search) View() string {
-	header := styles.Header.Render("  IMITERM  Search")
-
-	searchBar := styles.SearchBox.Render(s.input.View())
-
-	var rows string
-	if len(s.matched) == 0 {
-		rows = styles.SearchNoMatch.Render("no matches")
-	} else {
-		for i, r := range s.matched {
-			rows += renderHostRow(r.host, i == s.cursor, r.groupName) + "\n"
-		}
+	width := s.width
+	if width <= 0 {
+		width = 120
+	}
+	height := s.height
+	if height <= 0 {
+		height = 36
 	}
 
-	content := styles.ContentBox.Render(rows)
-
-	help := styles.RenderHelp(
-		"↑/k", "up", "↓/j", "down", "enter", "connect", "esc", "back",
+	header := styles.RenderHeader(
+		"IMITERM",
+		"Search across all hosts",
+		styles.RenderPill("matches", fmt.Sprintf("%d", len(s.matched)), true),
+		styles.RenderPill("query", strings.TrimSpace(s.input.Value()), false),
 	)
 
-	return header + "\n" + searchBar + "\n" + content + "\n" + help + "\n"
+	searchBar := styles.RenderCard("Search", styles.SearchBox.Render(s.input.View()), min(width-8, 100), true)
+
+	leftWidth := max(44, min(58, width/3))
+	rightWidth := max(34, width-leftWidth-6)
+	maxRows := max(3, min(8, height-12))
+
+	var rows []string
+	if len(s.matched) == 0 {
+		rows = append(rows, styles.RenderEmpty("No matches", "Try host, hostname, user, group, or tags."))
+	} else {
+		limit := min(len(s.matched), maxRows)
+		for i := 0; i < limit; i++ {
+			r := s.matched[i]
+			rows = append(rows, renderHostRow(r.host, i == s.cursor, r.groupName))
+		}
+		if len(s.matched) > limit {
+			rows = append(rows, styles.PanelSubtle.Render(fmt.Sprintf("… %d more results", len(s.matched)-limit)))
+		}
+	}
+	resultsBody := strings.Join(rows, "\n")
+
+	content := styles.RenderCard("Results", resultsBody, leftWidth, false)
+	if width >= 100 && height >= 30 {
+		content = styles.RenderDualCards(
+			styles.RenderCard("Results", resultsBody, leftWidth, false),
+			s.renderDetail(rightWidth),
+			"  ",
+		)
+	}
+	if width < 100 {
+		content = styles.RenderCard("Results", resultsBody, width-8, false)
+	}
+	footer := styles.Pill.Render("enter connect") + "  " + styles.Pill.Render("esc back") + "  " + styles.Pill.Render("↑ down") + "  " + styles.Pill.Render("↓ up")
+
+	return header + "\n" + searchBar + "\n" + content + "\n" + footer + "\n"
+}
+
+func (s Search) renderDetail(width int) string {
+	if len(s.matched) == 0 {
+		return styles.RenderCard("Inspect", styles.RenderEmpty("No selection", "Type to narrow the host list."), width, false)
+	}
+
+	r := s.matched[s.cursor]
+	var b strings.Builder
+	b.WriteString(styles.DetailLabel.Render("Host") + styles.DetailValue.Render(r.host.Name) + "\n")
+	b.WriteString(styles.DetailLabel.Render("Group") + styles.DetailValue.Render(r.groupName) + "\n")
+	b.WriteString(styles.DetailLabel.Render("Endpoint") + styles.DetailValue.Render(fmt.Sprintf("%s@%s:%d", r.host.User, r.host.Hostname, r.host.Port)) + "\n")
+	b.WriteString(styles.DetailLabel.Render("Tags") + styles.DetailValue.Render(strings.Join(r.host.Tags, ", ")))
+	return styles.RenderCard("Inspect", b.String(), width, false)
 }
