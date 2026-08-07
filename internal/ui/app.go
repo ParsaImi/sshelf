@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 
 	"github.com/ParsaImi/imiterm/internal/config"
 	"github.com/ParsaImi/imiterm/internal/git"
@@ -56,6 +57,9 @@ type App struct {
 	SelectedHost *model.Host
 	status       string
 	syncing      bool
+
+	width  int
+	height int
 }
 
 func NewApp(cfg *model.Config) App {
@@ -70,6 +74,12 @@ func (a App) Init() tea.Cmd { return nil }
 
 func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+
+	// --- Terminal resize: track for centering, then fall through to the
+	// active screen so it can react too (e.g. GroupList's own width field).
+	case tea.WindowSizeMsg:
+		a.width = msg.Width
+		a.height = msg.Height
 
 	// --- Git sync finished (background) ---
 	case syncResultMsg:
@@ -328,13 +338,16 @@ func (a App) View() string {
 
 	if a.status != "" {
 		if a.syncing {
-			view += styles.StatusOk.Render("  ⟳ "+a.status) + "\n"
+			view += styles.StatusOk.Render("⟳ "+a.status) + "\n"
 		} else if strings.Contains(a.status, "failed") || strings.Contains(a.status, "not a git") {
-			view += styles.StatusErr.Render("  ✗ "+a.status) + "\n"
+			view += styles.StatusErr.Render("✗ "+a.status) + "\n"
 		} else {
-			view += styles.StatusOk.Render("  ✓ "+a.status) + "\n"
+			view += styles.StatusOk.Render("✓ "+a.status) + "\n"
 		}
 	}
 
+	if a.width > 0 && a.height > 0 {
+		return lipgloss.Place(a.width, a.height, lipgloss.Center, lipgloss.Center, view)
+	}
 	return view
 }

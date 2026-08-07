@@ -33,9 +33,9 @@ func (c Confirm) Update(msg tea.Msg) (Confirm, tea.Cmd) {
 }
 
 func (c Confirm) View() string {
-	header := styles.Header.Render("  IMITERM  Confirm")
+	header := styles.RenderBanner("Confirm action", "")
 
-	prompt := styles.ConfirmPrompt.Render(c.message)
+	prompt := styles.ConfirmPrompt.Render("⚠  " + c.message)
 	hint := styles.ListItemDim.Render("  Press y to confirm, n to cancel")
 
 	box := styles.ConfirmBox.Render(prompt + "\n\n" + hint)

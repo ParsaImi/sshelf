@@ -7,7 +7,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 
 	"github.com/ParsaImi/imiterm/internal/model"
 	"github.com/ParsaImi/imiterm/internal/ui/styles"
@@ -162,31 +161,33 @@ func (f HostForm) toHost() (model.Host, string) {
 }
 
 func (f HostForm) View() string {
-	title := "Add Host"
+	title := "Add host"
 	if !f.isNew {
-		title = "Edit Host"
+		title = "Edit host"
 	}
-	header := styles.Header.Render("  IMITERM  " + title)
+	header := styles.RenderBanner(title, "")
 
 	var rows string
 	for i := range f.inputs {
-		label := styles.FormLabel.Render(fieldLabels[i])
+		active := i == f.focused
+		label := styles.FormLabel
 		indicator := "  "
-		if i == f.focused {
-			indicator = lipgloss.NewStyle().Foreground(lipgloss.Color("#50FA7B")).Render("▸ ")
+		if active {
+			label = styles.FormLabelActive
+			indicator = styles.FocusIndicator.Render("▸ ")
 		}
-		rows += indicator + label + f.inputs[i].View() + "\n"
+		rows += indicator + label.Render(fieldLabels[i]) + f.inputs[i].View() + "\n"
 	}
 
 	if f.err != "" {
-		rows += "\n" + styles.FormError.Render("  ✗ "+f.err) + "\n"
+		rows += "\n" + styles.FormError.Render("✗ "+f.err) + "\n"
 	}
 
 	content := styles.FormBox.Render(rows)
 
 	help := styles.RenderHelp(
-		"tab/↓", "next", "shift+tab/↑", "prev",
-		"enter/ctrl+s", "save", "esc", "cancel",
+		"tab", "next", "shift+tab", "prev",
+		"↵", "save", "esc", "cancel",
 	)
 
 	return header + "\n" + content + "\n" + help + "\n"

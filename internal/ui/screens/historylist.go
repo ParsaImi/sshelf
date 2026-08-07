@@ -43,7 +43,7 @@ func (h HistoryList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (h HistoryList) View() string {
-	header := styles.Header.Render("  IMITERM  Recent Connections")
+	header := styles.RenderBanner("Recent connections", "")
 
 	var rows string
 	for i, host := range h.hosts {
@@ -52,7 +52,7 @@ func (h HistoryList) View() string {
 
 	content := styles.ContentBox.Render(rows)
 
-	help := styles.RenderHelp("enter", "connect", "q", "quit")
+	help := styles.RenderHelp("↵", "connect", "q", "quit")
 
 	return header + "\n" + content + "\n" + help + "\n"
 }

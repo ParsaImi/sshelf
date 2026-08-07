@@ -1,13 +1,13 @@
 package screens
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/ParsaImi/imiterm/internal/model"
-	"github.com/ParsaImi/imiterm/internal/ui/keys"
 	"github.com/ParsaImi/imiterm/internal/ui/styles"
 )
 
@@ -44,23 +44,28 @@ func NewSearch(groups []model.Group) Search {
 func (s Search) Init() tea.Cmd { return textinput.Blink }
 
 func (s Search) Update(msg tea.Msg) (Search, tea.Cmd) {
+	// This is a free-text field, so navigation can't reuse GroupList's
+	// bindings — those include "j"/"k"/"q" as vim-style shortcuts, which
+	// would hijack those letters instead of letting them be typed into the
+	// query. Only real control keys are intercepted here; everything else
+	// (including j/k/q) falls through to the text input below.
 	if msg, ok := msg.(tea.KeyMsg); ok {
-		switch {
-		case keys.Match(msg, keys.GroupList.Quit):
+		switch msg.String() {
+		case "ctrl+c":
 			return s, tea.Quit
-		case msg.String() == "esc" || msg.String() == "ctrl+b":
+		case "esc", "ctrl+b":
 			return s, func() tea.Msg { return BackMsg{} }
-		case keys.Match(msg, keys.GroupList.Up):
+		case "up":
 			if s.cursor > 0 {
 				s.cursor--
 			}
 			return s, nil
-		case keys.Match(msg, keys.GroupList.Down):
+		case "down":
 			if s.cursor < len(s.matched)-1 {
 				s.cursor++
 			}
 			return s, nil
-		case keys.Match(msg, keys.GroupList.Enter):
+		case "enter":
 			if len(s.matched) > 0 {
 				host := s.matched[s.cursor].host
 				return s, func() tea.Msg { return HostSelectedMsg{Host: host} }
@@ -101,7 +106,8 @@ func (s *Search) filter() {
 }
 
 func (s Search) View() string {
-	header := styles.Header.Render("  IMITERM  Search")
+	meta := fmt.Sprintf("%d matches", len(s.matched))
+	header := styles.RenderBanner("Search all hosts", meta)
 
 	searchBar := styles.SearchBox.Render(s.input.View())
 
@@ -117,7 +123,7 @@ func (s Search) View() string {
 	content := styles.ContentBox.Render(rows)
 
 	help := styles.RenderHelp(
-		"↑/k", "up", "↓/j", "down", "enter", "connect", "esc", "back",
+		"↑↓", "move", "↵", "connect", "esc", "back",
 	)
 
 	return header + "\n" + searchBar + "\n" + content + "\n" + help + "\n"

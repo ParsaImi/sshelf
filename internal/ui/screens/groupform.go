@@ -40,13 +40,13 @@ const (
 )
 
 type GroupForm struct {
-	inputs      []textinput.Model
-	focused     int
-	onColorRow  bool
-	colorIdx    int
-	isNew       bool
-	editIdx     int
-	err         string
+	inputs     []textinput.Model
+	focused    int
+	onColorRow bool
+	colorIdx   int
+	isNew      bool
+	editIdx    int
+	err        string
 }
 
 func NewGroupForm() GroupForm {
@@ -195,29 +195,32 @@ func (f GroupForm) toGroup() (model.Group, string) {
 }
 
 func (f GroupForm) View() string {
-	title := "Add Group"
+	title := "Add group"
 	if !f.isNew {
-		title = "Edit Group"
+		title = "Edit group"
 	}
-	header := styles.Header.Render("  IMITERM  " + title)
+	header := styles.RenderBanner(title, "")
 
 	labels := [gfFieldCount]string{"Name", "Description"}
 	var rows string
 
 	for i := range f.inputs {
-		label := styles.FormLabel.Render(labels[i])
+		active := i == f.focused && !f.onColorRow
+		label := styles.FormLabel
 		indicator := "  "
-		if i == f.focused && !f.onColorRow {
-			indicator = lipgloss.NewStyle().Foreground(lipgloss.Color("#50FA7B")).Render("▸ ")
+		if active {
+			label = styles.FormLabelActive
+			indicator = styles.FocusIndicator.Render("▸ ")
 		}
-		rows += indicator + label + f.inputs[i].View() + "\n"
+		rows += indicator + label.Render(labels[i]) + f.inputs[i].View() + "\n"
 	}
 
 	// Color picker row
-	colorLabel := styles.FormLabel.Render("Color")
+	colorLabelStyle := styles.FormLabel
 	colorIndicator := "  "
 	if f.onColorRow {
-		colorIndicator = lipgloss.NewStyle().Foreground(lipgloss.Color("#50FA7B")).Render("▸ ")
+		colorLabelStyle = styles.FormLabelActive
+		colorIndicator = styles.FocusIndicator.Render("▸ ")
 	}
 
 	var colorDots string
@@ -229,17 +232,17 @@ func (f GroupForm) View() string {
 			colorDots += dot.Render(" ● ")
 		}
 	}
-	rows += colorIndicator + colorLabel + colorDots + "\n"
+	rows += colorIndicator + colorLabelStyle.Render("Color") + colorDots + "\n"
 
 	if f.err != "" {
-		rows += "\n" + styles.FormError.Render("  ✗ "+f.err) + "\n"
+		rows += "\n" + styles.FormError.Render("✗ "+f.err) + "\n"
 	}
 
 	content := styles.FormBox.Render(rows)
 
 	help := styles.RenderHelp(
-		"tab/↓", "next", "shift+tab/↑", "prev",
-		"←/→", "color", "enter", "save", "esc", "cancel",
+		"tab", "next", "shift+tab", "prev",
+		"←→", "color", "↵", "save", "esc", "cancel",
 	)
 
 	return header + "\n" + content + "\n" + help + "\n"

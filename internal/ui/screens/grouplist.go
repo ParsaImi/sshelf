@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 
 	"github.com/ParsaImi/imiterm/internal/model"
 	"github.com/ParsaImi/imiterm/internal/ui/keys"
@@ -57,42 +56,47 @@ func (g GroupList) Update(msg tea.Msg) (GroupList, tea.Cmd) {
 }
 
 func (g GroupList) View() string {
-	header := styles.Header.Render("  IMITERM  SSH Manager")
+	totalHosts := 0
+	for _, group := range g.groups {
+		totalHosts += len(group.Hosts)
+	}
+	meta := fmt.Sprintf("%d groups · %d hosts", len(g.groups), totalHosts)
+	header := styles.RenderBanner("Fast SSH connection manager", meta)
 
 	var rows string
 	if len(g.groups) == 0 {
 		welcome := "\n"
 		welcome += styles.GroupName.Render("  Welcome to IMITERM!") + "\n\n"
 		welcome += styles.ListItemDim.Render("  You have no server groups yet.") + "\n"
-		welcome += styles.ListItemDim.Render("  Press ") + styles.HelpKey.Render("a") + styles.ListItemDim.Render(" to create your first group,") + "\n"
-		welcome += styles.ListItemDim.Render("  then add hosts to it and connect with ") + styles.HelpKey.Render("Enter") + styles.ListItemDim.Render(".") + "\n\n"
+		welcome += styles.ListItemDim.Render("  Press ") + styles.HelpKey.Render(" a ") + styles.ListItemDim.Render(" to create your first group,") + "\n"
+		welcome += styles.ListItemDim.Render("  then add hosts to it and connect with ") + styles.HelpKey.Render(" enter ") + styles.ListItemDim.Render(".") + "\n\n"
 		welcome += styles.ListItemDim.Render("  Config: ~/.config/imiterm/config.toml") + "\n"
 		rows = welcome
 	}
 
 	for i, group := range g.groups {
-		dot := lipgloss.NewStyle().Foreground(lipgloss.Color(group.Color)).Render("●")
+		cursor := "  "
+		if i == g.cursor {
+			cursor = styles.FocusIndicator.Render("▸ ")
+		}
+
+		accent := styles.Accent(group.Color)
 		name := styles.GroupName.Render(group.Name)
 		count := styles.GroupCount.Render(fmt.Sprintf("%d hosts", len(group.Hosts)))
 
-		line := fmt.Sprintf("%s  %s  %s", dot, name, count)
+		line := fmt.Sprintf("%s%s %s  %s", cursor, accent, name, count)
 
 		if group.Description != "" {
-			desc := styles.ListItemDim.Render(" — " + group.Description)
-			line += desc
+			line += styles.ListItemDim.Render(" — " + group.Description)
 		}
 
-		if i == g.cursor {
-			rows += styles.ListItemSelected.Render("▸ "+line) + "\n"
-		} else {
-			rows += styles.ListItem.Render("  "+line) + "\n"
-		}
+		rows += line + "\n"
 	}
 
 	content := styles.ContentBox.Render(rows)
 
 	help := styles.RenderHelp(
-		"↑/k", "up", "↓/j", "down", "enter", "open",
+		"↑↓", "move", "↵", "open",
 		"a", "add", "e", "edit", "d", "delete",
 		"/", "search", "s", "sync", "q", "quit",
 	)

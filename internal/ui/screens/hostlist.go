@@ -57,11 +57,14 @@ func (h HostList) Update(msg tea.Msg) (HostList, tea.Cmd) {
 }
 
 func (h HostList) View() string {
-	header := styles.Header.Render("  IMITERM  " + h.groupName)
+	meta := fmt.Sprintf("%d hosts", len(h.hosts))
+	header := styles.RenderBanner(h.groupName, meta)
 
 	var rows string
 	if len(h.hosts) == 0 {
 		rows = styles.SearchNoMatch.Render("No hosts in this group. Press a to add one.")
+	} else {
+		rows = styles.ColumnHeader.Render(fmt.Sprintf("  %-15s %-24s AUTH", "NAME", "ADDRESS")) + "\n" + styles.Divider() + "\n"
 	}
 
 	for i, host := range h.hosts {
@@ -71,7 +74,7 @@ func (h HostList) View() string {
 	content := styles.ContentBox.Render(rows)
 
 	help := styles.RenderHelp(
-		"enter", "connect", "esc/b", "back",
+		"↵", "connect", "esc", "back",
 		"a", "add", "e", "edit", "d", "delete", "q", "quit",
 	)
 
@@ -87,19 +90,20 @@ func renderHostRow(host model.Host, selected bool, groupName string) string {
 		auth = "pass"
 	}
 
+	cursor := "  "
+	if selected {
+		cursor = styles.FocusIndicator.Render("▸ ")
+	}
+
 	name := styles.HostName.Render(fmt.Sprintf("%-15s", host.Name))
-	addr := styles.HostAddr.Render(fmt.Sprintf("%s@%s:%d", host.User, host.Hostname, host.Port))
+	addr := styles.HostAddr.Render(fmt.Sprintf("%-24s", fmt.Sprintf("%s@%s:%d", host.User, host.Hostname, host.Port)))
 	badge := styles.RenderAuthBadge(auth)
 
-	line := fmt.Sprintf("%s  %s  %s", name, addr, badge)
+	line := cursor + name + " " + addr + " " + badge
 
 	if groupName != "" {
-		tag := styles.GroupTag.Render(groupName)
-		line += "  " + tag
+		line += "  " + styles.GroupTag.Render(groupName)
 	}
 
-	if selected {
-		return styles.ListItemSelected.Render("▸ " + line)
-	}
-	return styles.ListItem.Render("  " + line)
+	return line
 }
