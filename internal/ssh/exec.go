@@ -8,7 +8,7 @@ import (
 	"syscall"
 
 	"github.com/atotto/clipboard"
-	"github.com/ParsaImi/imiterm/internal/model"
+	"github.com/ParsaImi/sshelf/internal/model"
 )
 
 // Exec replaces the current process with an SSH session to the given host.

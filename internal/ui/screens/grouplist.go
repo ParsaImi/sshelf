@@ -5,9 +5,9 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/ParsaImi/imiterm/internal/model"
-	"github.com/ParsaImi/imiterm/internal/ui/keys"
-	"github.com/ParsaImi/imiterm/internal/ui/styles"
+	"github.com/ParsaImi/sshelf/internal/model"
+	"github.com/ParsaImi/sshelf/internal/ui/keys"
+	"github.com/ParsaImi/sshelf/internal/ui/styles"
 )
 
 type GroupSelectedMsg struct {
@@ -66,11 +66,11 @@ func (g GroupList) View() string {
 	var rows string
 	if len(g.groups) == 0 {
 		welcome := "\n"
-		welcome += styles.GroupName.Render("  Welcome to IMITERM!") + "\n\n"
+		welcome += styles.GroupName.Render("  Welcome to SSHELF!") + "\n\n"
 		welcome += styles.ListItemDim.Render("  You have no server groups yet.") + "\n"
 		welcome += styles.ListItemDim.Render("  Press ") + styles.HelpKey.Render(" a ") + styles.ListItemDim.Render(" to create your first group,") + "\n"
 		welcome += styles.ListItemDim.Render("  then add hosts to it and connect with ") + styles.HelpKey.Render(" enter ") + styles.ListItemDim.Render(".") + "\n\n"
-		welcome += styles.ListItemDim.Render("  Config: ~/.config/imiterm/config.toml") + "\n"
+		welcome += styles.ListItemDim.Render("  Config: ~/.config/sshelf/config.toml") + "\n"
 		rows = welcome
 	}
 

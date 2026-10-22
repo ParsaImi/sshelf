@@ -84,9 +84,9 @@ func GradientText(s string, stops ...lipgloss.Color) string {
 
 var logoStops = []lipgloss.Color{colorPurple, colorPink, colorOrange}
 
-// Logo returns the gradient IMITERM wordmark used in the banner.
+// Logo returns the gradient SSHELF wordmark used in the banner.
 func Logo() string {
-	return GradientText("◆ IMITERM", logoStops...)
+	return GradientText("◆ SSHELF", logoStops...)
 }
 
 // ---------------------------------------------------------------------

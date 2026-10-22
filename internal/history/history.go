@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/ParsaImi/imiterm/internal/config"
-	"github.com/ParsaImi/imiterm/internal/model"
+	"github.com/ParsaImi/sshelf/internal/config"
+	"github.com/ParsaImi/sshelf/internal/model"
 )
 
 type Entry struct {

@@ -5,9 +5,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build & Run
 
 ```bash
-go build -o imiterm ./cmd/imiterm/     # build binary
-go run ./cmd/imiterm/                   # dev run (needs a real TTY)
-go install ./cmd/imiterm/               # install to $GOPATH/bin
+go build -o sshelf ./cmd/sshelf/       # build binary
+go run ./cmd/sshelf/                    # dev run (needs a real TTY)
+go install ./cmd/sshelf/                # install to $GOPATH/bin
 ```
 
 No test suite yet. Verify manually by running the binary in a terminal — piped input won't work (Bubble Tea requires a TTY).
@@ -22,7 +22,7 @@ Elm-architecture TUI built with Bubble Tea (charmbracelet/bubbletea).
 
 **Package dependency graph** (arrows = imports):
 ```
-cmd/imiterm/main.go → config, git, history, ssh, ui
+cmd/sshelf/main.go → config, git, history, ssh, ui
 ui/app.go → config, git, model, ui/screens, ui/styles
 ui/screens/* → model, ui/keys, ui/styles
 ssh/exec.go → model
@@ -38,4 +38,4 @@ model/ → (no internal deps, center of the graph)
 
 ## Config
 
-TOML at `~/.config/imiterm/config.toml`. Structs in `internal/model/types.go`. Load/Save in `internal/config/config.go`.
+TOML at `~/.config/sshelf/config.toml`. Structs in `internal/model/types.go`. Load/Save in `internal/config/config.go`.

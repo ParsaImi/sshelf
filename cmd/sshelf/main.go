@@ -7,13 +7,13 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/ParsaImi/imiterm/internal/config"
-	"github.com/ParsaImi/imiterm/internal/git"
-	"github.com/ParsaImi/imiterm/internal/history"
-	"github.com/ParsaImi/imiterm/internal/model"
-	"github.com/ParsaImi/imiterm/internal/ssh"
-	"github.com/ParsaImi/imiterm/internal/ui"
-	"github.com/ParsaImi/imiterm/internal/ui/screens"
+	"github.com/ParsaImi/sshelf/internal/config"
+	"github.com/ParsaImi/sshelf/internal/git"
+	"github.com/ParsaImi/sshelf/internal/history"
+	"github.com/ParsaImi/sshelf/internal/model"
+	"github.com/ParsaImi/sshelf/internal/ssh"
+	"github.com/ParsaImi/sshelf/internal/ui"
+	"github.com/ParsaImi/sshelf/internal/ui/screens"
 )
 
 func main() {
@@ -30,7 +30,7 @@ func main() {
 	dir := config.Dir()
 	if cfg.Meta.GitAutoPull && git.IsRepo(dir) {
 		if err := git.Pull(dir); err != nil {
-			fmt.Fprintf(os.Stderr, "imiterm: git pull failed: %v\n", err)
+			fmt.Fprintf(os.Stderr, "sshelf: git pull failed: %v\n", err)
 		} else {
 			if newCfg, loadErr := config.Load(); loadErr == nil {
 				cfg = newCfg
@@ -41,7 +41,7 @@ func main() {
 	p := tea.NewProgram(ui.NewApp(cfg), tea.WithAltScreen())
 	finalModel, err := p.Run()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "imiterm: %v\n", err)
+		fmt.Fprintf(os.Stderr, "sshelf: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -64,7 +64,7 @@ func runHistory() {
 	)
 	finalModel, err := p.Run()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "imiterm: %v\n", err)
+		fmt.Fprintf(os.Stderr, "sshelf: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -77,7 +77,7 @@ func runHistory() {
 func connect(h model.Host) {
 	history.Record(h)
 	if err := ssh.Exec(h); err != nil {
-		fmt.Fprintf(os.Stderr, "imiterm: %v\n", err)
+		fmt.Fprintf(os.Stderr, "sshelf: %v\n", err)
 		os.Exit(1)
 	}
 }

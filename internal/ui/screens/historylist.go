@@ -3,9 +3,9 @@ package screens
 import (
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/ParsaImi/imiterm/internal/model"
-	"github.com/ParsaImi/imiterm/internal/ui/keys"
-	"github.com/ParsaImi/imiterm/internal/ui/styles"
+	"github.com/ParsaImi/sshelf/internal/model"
+	"github.com/ParsaImi/sshelf/internal/ui/keys"
+	"github.com/ParsaImi/sshelf/internal/ui/styles"
 )
 
 type HistoryList struct {

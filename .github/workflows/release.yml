@@ -39,13 +39,13 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
         run: |
-          go build -ldflags "-s -w" -o imiterm-${{ matrix.suffix }} ./cmd/imiterm/
+          go build -ldflags "-s -w" -o sshelf-${{ matrix.suffix }} ./cmd/sshelf/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: imiterm-${{ matrix.suffix }}
-          path: imiterm-${{ matrix.suffix }}
+          name: sshelf-${{ matrix.suffix }}
+          path: sshelf-${{ matrix.suffix }}
 
   release:
     needs: build
@@ -59,4 +59,4 @@ jobs:
         with:
           generate_release_notes: true
           files: |
-            imiterm-*/imiterm-*
+            sshelf-*/sshelf-*

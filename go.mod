@@ -1,4 +1,4 @@
-module github.com/ParsaImi/imiterm
+module github.com/ParsaImi/sshelf
 
 go 1.24.2
 

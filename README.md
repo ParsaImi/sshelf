@@ -1,4 +1,4 @@
-# IMITERM
+# SSHELF
 
 A TUI SSH connection manager for the terminal. Save your servers, organize them into groups, and connect with a single keypress. Built as a [Termius](https://termius.com/) replacement for terminal-native workflows.
 
@@ -10,7 +10,7 @@ A TUI SSH connection manager for the terminal. Save your servers, organize them 
 - **Server groups** — organize hosts into named, color-coded groups
 - **One-keypress connect** — select a host and SSH fires instantly (process replacement via `exec`)
 - **Search** — press `/` to fuzzy-search across all hosts by name, hostname, user, group, or tags
-- **Connection history** — `imiterm -h` shows your last 5 connections for quick reconnect
+- **Connection history** — `sshelf -h` shows your last 5 connections for quick reconnect
 - **Git sync** — auto-pull on startup, auto-commit+push on every save. Sync your config across machines via a private GitHub repo
 - **tmux integration** — sets the tmux window name to the host you're connected to
 - **Password & key auth** — supports SSH keys, passwords (via `sshpass`), and ssh-agent
@@ -19,24 +19,24 @@ A TUI SSH connection manager for the terminal. Save your servers, organize them 
 
 ### Download binary (no Go required)
 
-Grab the latest binary from [Releases](https://github.com/ParsaImi/imiterm/releases):
+Grab the latest binary from [Releases](https://github.com/ParsaImi/sshelf/releases):
 
 ```bash
 # Linux (amd64)
-curl -L https://github.com/ParsaImi/imiterm/releases/latest/download/imiterm-linux-amd64 -o imiterm
-chmod +x imiterm
-sudo mv imiterm /usr/local/bin/
+curl -L https://github.com/ParsaImi/sshelf/releases/latest/download/sshelf-linux-amd64 -o sshelf
+chmod +x sshelf
+sudo mv sshelf /usr/local/bin/
 
 # macOS (Apple Silicon)
-curl -L https://github.com/ParsaImi/imiterm/releases/latest/download/imiterm-darwin-arm64 -o imiterm
-chmod +x imiterm
-sudo mv imiterm /usr/local/bin/
+curl -L https://github.com/ParsaImi/sshelf/releases/latest/download/sshelf-darwin-arm64 -o sshelf
+chmod +x sshelf
+sudo mv sshelf /usr/local/bin/
 ```
 
 ### From source (requires Go 1.22+)
 
 ```bash
-go install github.com/ParsaImi/imiterm/cmd/imiterm@latest
+go install github.com/ParsaImi/sshelf/cmd/sshelf@latest
 ```
 
 ### System dependencies
@@ -51,10 +51,10 @@ sudo apt install sshpass    # Debian/Ubuntu
 
 ```bash
 # Launch the TUI
-imiterm
+sshelf
 
 # Show last 5 connections (quick reconnect)
-imiterm -h
+sshelf -h
 ```
 
 ### Key bindings
@@ -93,7 +93,7 @@ imiterm -h
 
 ## Configuration
 
-Config is stored at `~/.config/imiterm/config.toml`. Example:
+Config is stored at `~/.config/sshelf/config.toml`. Example:
 
 ```toml
 [meta]
@@ -124,14 +124,14 @@ You can edit this file directly or use the TUI forms.
 Sync your config across machines via a private GitHub repo:
 
 ```bash
-# 1. Create a private repo on GitHub (e.g., imiterm-config)
+# 1. Create a private repo on GitHub (e.g., sshelf-config)
 
 # 2. Initialize the config directory as a git repo
-cd ~/.config/imiterm
+cd ~/.config/sshelf
 git init
 git add config.toml
 git commit -m "initial config"
-git remote add origin git@github.com:YOUR_USER/imiterm-config.git
+git remote add origin git@github.com:YOUR_USER/sshelf-config.git
 git push -u origin master
 
 # 3. Enable auto-sync in config.toml
@@ -141,7 +141,7 @@ git push -u origin master
 On a new machine:
 
 ```bash
-git clone git@github.com:YOUR_USER/imiterm-config.git ~/.config/imiterm
+git clone git@github.com:YOUR_USER/sshelf-config.git ~/.config/sshelf
 ```
 
 ## Authentication

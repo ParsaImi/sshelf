@@ -31,7 +31,7 @@ func CommitAndPush(dir string) error {
 		return nil
 	}
 
-	msg := fmt.Sprintf("imiterm: update config %s", time.Now().Format("2006-01-02 15:04:05"))
+	msg := fmt.Sprintf("sshelf: update config %s", time.Now().Format("2006-01-02 15:04:05"))
 	if err := runGit(dir, "commit", "-m", msg); err != nil {
 		return fmt.Errorf("git commit: %w", err)
 	}

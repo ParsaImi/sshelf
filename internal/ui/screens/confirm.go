@@ -3,7 +3,7 @@ package screens
 import (
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/ParsaImi/imiterm/internal/ui/styles"
+	"github.com/ParsaImi/sshelf/internal/ui/styles"
 )
 
 type ConfirmResult struct {

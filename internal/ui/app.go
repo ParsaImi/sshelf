@@ -6,11 +6,11 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/ParsaImi/imiterm/internal/config"
-	"github.com/ParsaImi/imiterm/internal/git"
-	"github.com/ParsaImi/imiterm/internal/model"
-	"github.com/ParsaImi/imiterm/internal/ui/screens"
-	"github.com/ParsaImi/imiterm/internal/ui/styles"
+	"github.com/ParsaImi/sshelf/internal/config"
+	"github.com/ParsaImi/sshelf/internal/git"
+	"github.com/ParsaImi/sshelf/internal/model"
+	"github.com/ParsaImi/sshelf/internal/ui/screens"
+	"github.com/ParsaImi/sshelf/internal/ui/styles"
 )
 
 type screen int
@@ -300,7 +300,7 @@ func (a *App) save() tea.Cmd {
 func (a *App) syncNow() tea.Cmd {
 	dir := config.Dir()
 	if !git.IsRepo(dir) {
-		a.status = "not a git repo — run: cd ~/.config/imiterm && git init"
+		a.status = "not a git repo — run: cd ~/.config/sshelf && git init"
 		return nil
 	}
 

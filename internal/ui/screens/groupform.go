@@ -7,8 +7,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/ParsaImi/imiterm/internal/model"
-	"github.com/ParsaImi/imiterm/internal/ui/styles"
+	"github.com/ParsaImi/sshelf/internal/model"
+	"github.com/ParsaImi/sshelf/internal/ui/styles"
 )
 
 type GroupSavedMsg struct {

@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/BurntSushi/toml"
-	"github.com/ParsaImi/imiterm/internal/model"
+	"github.com/ParsaImi/sshelf/internal/model"
 )
 
 // Load reads config.toml and returns the parsed Config.

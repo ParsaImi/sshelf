@@ -5,14 +5,18 @@ import (
 	"path/filepath"
 )
 
-// Dir returns the config directory (~/.config/imiterm/).
+// Dir returns the config directory (~/.config/sshelf/).
 // Creates it if it doesn't exist.
 func Dir() string {
 	base, err := os.UserConfigDir()
 	if err != nil {
 		base = filepath.Join(os.Getenv("HOME"), ".config")
 	}
-	dir := filepath.Join(base, "imiterm")
+	dir := filepath.Join(base, "sshelf")
+	// Carry over config from the pre-rename IMITerm location.
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		os.Rename(filepath.Join(base, "imiterm"), dir)
+	}
 	os.MkdirAll(dir, 0o755)
 	return dir
 }
